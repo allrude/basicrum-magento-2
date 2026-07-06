@@ -1,0 +1,14 @@
+.basicrum-config-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.basicrum-config-logo img {
+    width: 35px;
+    height: 35px;
+}

@@ -1,0 +1,12 @@
+<?php
+declare(strict_types=1);
+
+/** @var \BasicRum\Analytics\Block\Adminhtml\System\Config\Logo $block */
+/** @var \Magento\Framework\Escaper $escaper */
+?>
+<div class="basicrum-config-logo">
+    <img src="<?= $escaper->escapeUrl($block->getLogoUrl()) ?>"
+         alt="<?= $escaper->escapeHtmlAttr(__('BasicRUM Logo')) ?>"
+         width="35" height="35" />
+    <span><?= $escaper->escapeHtml(__('BasicRUM Analytics')) ?></span>
+</div>

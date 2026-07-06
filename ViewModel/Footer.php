@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace BasicRum\Analytics\ViewModel;
 
@@ -9,31 +10,27 @@ use Magento\Store\Model\ScopeInterface;
 
 class Footer implements ArgumentInterface
 {
+    public const XML_PATH_BEACON_ENDPOINT = 'basicrum/general/beacon_endpoint';
+
     public function __construct(
-        private PageTypeDetectorInterface $pageTypeDetector,
-        private ScopeConfigInterface $scopeConfig
+        private readonly PageTypeDetectorInterface $pageTypeDetector,
+        private readonly ScopeConfigInterface $scopeConfig
     ) {
     }
 
     /**
-     * Get module configuration
+     * Configured beacon collector endpoint for the current store (empty string when unset).
      */
-    public function getConfig(): array
+    public function getBeaconEndpoint(): string
     {
-        // If you already have a getConfig method, keep its implementation
-        // and add to it if needed
-        $config = [
-            'beacon_endpoint' => $this->scopeConfig->getValue(
-                'basicrum/general/beacon_endpoint',
-                ScopeInterface::SCOPE_STORE
-            )
-        ];
-
-        return $config;
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_BEACON_ENDPOINT,
+            ScopeInterface::SCOPE_STORE
+        );
     }
 
     /**
-     * Get the current page type
+     * Coarse-grained page type for the current request.
      */
     public function getPageType(): string
     {

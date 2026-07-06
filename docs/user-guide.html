@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BasicRum Analytics for Magento 2 — Setup Guide</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --ink:#141a22; --muted:#5c6b7a; --line:#e3e9f0;
+    --brand:#2f6fed; --brand-ink:#1b47a6; --accent:#12b886; --warn:#e8590c; --danger:#e03131;
+    --code-bg:#0f1622; --code-ink:#e6edf3; --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+    --maxw:960px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c1017; --panel:#141b26; --ink:#e7edf5; --muted:#9aa8b8; --line:#243040;
+      --brand:#5b8dff; --brand-ink:#a9c4ff; --accent:#38d9a9; --warn:#ffa94d; --danger:#ff8787;
+      --code-bg:#0a0f18; --code-ink:#e6edf3; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand)} a:hover{color:var(--brand-ink)}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 20px}
+
+  header.hero{
+    background:linear-gradient(135deg, var(--brand), #6d3ff0);
+    color:#fff; padding:44px 0 40px;
+  }
+  .hero .wrap{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
+  .logo{width:56px;height:56px;flex:0 0 auto;background:#fff;border-radius:14px;display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+  .hero h1{margin:0;font-size:1.9rem;letter-spacing:-.01em}
+  .hero p{margin:.35rem 0 0;opacity:.92}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;width:100%}
+  .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;
+    padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:600;backdrop-filter:blur(4px)}
+
+  nav.toc{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px}
+  nav.toc a{white-space:nowrap;font-size:.86rem;font-weight:600;color:var(--muted);text-decoration:none;
+    padding:6px 10px;border-radius:8px}
+  nav.toc a:hover{color:var(--ink);background:var(--line)}
+
+  main{padding:34px 0 60px}
+  section{margin:0 0 40px}
+  section > h2{font-size:1.35rem;margin:0 0 6px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  section > h2 .n{width:28px;height:28px;flex:0 0 auto;background:var(--brand);color:#fff;border-radius:8px;
+    display:grid;place-items:center;font-size:.9rem;font-weight:700}
+  section > p.lead{color:var(--muted);margin:.2rem 0 18px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:14px}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:720px){.grid.cols-3,.grid.cols-2{grid-template-columns:1fr}}
+  .feature h3{margin:.1rem 0 .3rem;font-size:1rem}
+  .feature p{margin:0;color:var(--muted);font-size:.92rem}
+  .ico{font-size:1.5rem;line-height:1}
+
+  ol.steps{list-style:none;counter-reset:s;padding:0;margin:0;display:grid;gap:14px}
+  ol.steps > li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px 16px 58px;position:relative;box-shadow:var(--shadow)}
+  ol.steps > li::before{content:counter(s);position:absolute;left:16px;top:16px;width:28px;height:28px;background:var(--brand);
+    color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+  ol.steps > li h3{margin:.1rem 0 .4rem;font-size:1.02rem}
+  ol.steps > li p{margin:.3rem 0}
+
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:14px 16px;overflow-x:auto;
+    font:13px/1.55 "SF Mono",ui-monospace,Menlo,Consolas,monospace;position:relative;margin:.6rem 0}
+  code:not(pre code){background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-ink);
+    padding:.08em .38em;border-radius:6px;font:600 .86em ui-monospace,Menlo,Consolas,monospace}
+  .copy{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.1);color:#cfe0ff;border:1px solid rgba(255,255,255,.2);
+    border-radius:7px;font-size:.72rem;padding:4px 8px;cursor:pointer;font-weight:600}
+  .copy:hover{background:rgba(255,255,255,.2)}
+  .copy.done{color:#8ef5c8;border-color:#2f9e6a}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;background:var(--brand);color:#fff;border:none;border-radius:9px;
+    padding:9px 14px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;text-decoration:none}
+  .btn:hover{background:var(--brand-ink);color:#fff}
+  .btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}
+  .btn.ghost:hover{background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-ink)}
+
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:var(--radius);overflow:hidden;
+    border:1px solid var(--line);box-shadow:var(--shadow);font-size:.92rem}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:color-mix(in srgb,var(--brand) 8%,var(--panel));font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  .tbl-scroll{overflow-x:auto}
+
+  details{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;box-shadow:var(--shadow);overflow:hidden}
+  details > summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+  details > summary::-webkit-details-marker{display:none}
+  details > summary::before{content:"▸";color:var(--brand);font-size:.9rem;transition:transform .15s}
+  details[open] > summary::before{transform:rotate(90deg)}
+  details > summary:hover{background:color-mix(in srgb,var(--brand) 6%,transparent)}
+  details .body{padding:2px 18px 16px 40px;color:var(--ink)}
+  details .body p:first-child{margin-top:0}
+  .tag{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:auto}
+  .tag.q{background:color-mix(in srgb,var(--brand) 16%,transparent);color:var(--brand-ink)}
+  .tag.fix{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
+
+  .note{border-left:4px solid var(--brand);background:color-mix(in srgb,var(--brand) 7%,var(--panel));
+    padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+  .note.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,var(--panel))}
+  .note.tip{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel))}
+  .note strong{display:block;margin-bottom:2px}
+
+  dialog{border:none;border-radius:16px;padding:0;max-width:640px;width:calc(100% - 32px);color:var(--ink);
+    background:var(--panel);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  dialog::backdrop{background:rgba(8,12,20,.55);backdrop-filter:blur(3px)}
+  dialog .dlg-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+  dialog .dlg-head h3{margin:0;font-size:1.08rem}
+  dialog .dlg-body{padding:18px 20px;max-height:70vh;overflow:auto}
+  dialog .dlg-body p:first-child{margin-top:0}
+  .x{background:none;border:none;font-size:1.4rem;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:8px}
+  .x:hover{background:var(--line);color:var(--ink)}
+
+  kbd{background:var(--panel);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font:600 .82em ui-monospace,monospace}
+  .muted{color:var(--muted)}
+  hr{border:none;border-top:1px solid var(--line);margin:26px 0}
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:.88rem}
+  footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .totop{position:fixed;right:18px;bottom:18px;opacity:0;pointer-events:none;transition:opacity .2s}
+  .totop.show{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 15c3-8 15-8 18 0"/><circle cx="12" cy="15" r="2.2" fill="#2f6fed" stroke="none"/><path d="M12 15l4-5"/>
+      </svg>
+    </div>
+    <div>
+      <h1>BasicRum Analytics</h1>
+      <p>Real User Monitoring for Magento 2 — setup, configuration &amp; troubleshooting guide.</p>
+    </div>
+    <div class="badges">
+      <span class="badge">Module v0.1.0</span>
+      <span class="badge">Magento 2.4.8+</span>
+      <span class="badge">PHP 8.3 / 8.4</span>
+      <span class="badge">Boomerang 1.815</span>
+      <span class="badge">CSP-ready</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#what">Overview</a>
+    <a href="#requirements">Requirements</a>
+    <a href="#install">Install</a>
+    <a href="#endpoint">Get your endpoint</a>
+    <a href="#configure">Configure</a>
+    <a href="#csp">CSP</a>
+    <a href="#verify">Verify</a>
+    <a href="#reference">Settings</a>
+    <a href="#faq">FAQ</a>
+    <a href="#trouble">Troubleshooting</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- OVERVIEW -->
+  <section id="what">
+    <h2><span class="n">i</span> What this module does</h2>
+    <p class="lead">BasicRum Analytics measures the <em>real</em> performance your visitors experience and
+      sends it to a collector you control, so you can see how fast your store actually is in the field —
+      not just in a lab.</p>
+    <div class="grid cols-3">
+      <div class="card feature"><div class="ico">⚡</div><h3>Real User Monitoring</h3>
+        <p>Loads the open-source <strong>Boomerang</strong> library to capture load time, ResourceTiming and
+          Continuity (responsiveness) metrics from every visitor.</p></div>
+      <div class="card feature"><div class="ico">🏷️</div><h3>Page-type tagging</h3>
+        <p>Every beacon is tagged with the page type (<code>home</code>, <code>product</code>,
+          <code>checkout</code>…) and <code>p_gen=mage2</code> so you can segment in your dashboard.</p></div>
+      <div class="card feature"><div class="ico">🛡️</div><h3>CSP-safe by design</h3>
+        <p>Uses Magento's secure inline-script renderer and automatically whitelists your beacon host, so it
+          works on stores with Content-Security-Policy enforced.</p></div>
+    </div>
+    <div class="note tip"><strong>No personal data collection built in.</strong>
+      The module ships performance beacons only. It stores nothing in your database and adds no server-side
+      endpoints — data goes straight from the browser to the collector URL you configure.</div>
+  </section>
+
+  <!-- REQUIREMENTS -->
+  <section id="requirements">
+    <h2><span class="n">1</span> Requirements</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3 style="margin-top:0">On your store</h3>
+        <ul style="margin:.2rem 0 0;padding-left:1.1rem">
+          <li>Magento Open Source or Commerce <strong>2.4.8 or newer</strong></li>
+          <li>PHP <strong>8.3</strong> or <strong>8.4</strong></li>
+          <li>Command-line access for <code>composer</code> and <code>bin/magento</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Somewhere to send data</h3>
+        <p style="margin:.2rem 0">A <strong>BasicRUM beacon endpoint</strong> — the URL of a running beacon
+          catcher/collector that receives the performance data.</p>
+        <button class="btn ghost" data-open="dlg-endpoint">Where do I get this? →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <h2><span class="n">2</span> Installation</h2>
+    <p class="lead">Install through Composer (recommended), then enable the module and clear caches.</p>
+    <ol class="steps">
+      <li>
+        <h3>Require the package</h3>
+        <pre><button class="copy">Copy</button><code>composer require basicrum/basicrum-analytics</code></pre>
+      </li>
+      <li>
+        <h3>Enable the module</h3>
+        <pre><button class="copy">Copy</button><code>bin/magento module:enable BasicRum_Analytics</code></pre>
+      </li>
+      <li>
+        <h3>Run the upgrade &amp; clear caches</h3>
+        <pre><button class="copy">Copy</button><code>bin/magento setup:upgrade
+bin/magento cache:flush</code></pre>
+        <p class="muted">On a <strong>production</strong>-mode store also run
+          <code>bin/magento setup:di:compile</code> and re-deploy static content.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ENDPOINT / TOKEN -->
+  <section id="endpoint">
+    <h2><span class="n">3</span> Get your Beacon Endpoint (your "token")</h2>
+    <p class="lead">The Beacon Endpoint is the single most important setting. It is the address your visitors'
+      browsers send data to — think of it as your connection string.</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3 style="margin-top:0">Self-hosted collector</h3>
+        <p class="muted" style="margin:.2rem 0 .6rem">Run the open-source BasicRUM beacon catcher and copy the
+          URL it listens on. It usually looks like:</p>
+        <pre><button class="copy">Copy</button><code>https://rum.your-domain.com/beacon</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Hosted / SaaS collector</h3>
+        <p class="muted" style="margin:.2rem 0 .6rem">Your provider's dashboard gives you a ready-made URL.
+          If it includes a <strong>site key / token</strong>, keep it as part of the URL:</p>
+        <pre><button class="copy">Copy</button><code>https://collector.example.com/beacon?token=YOUR_TOKEN</code></pre>
+      </div>
+    </div>
+
+    <div class="note"><strong>About the "token"</strong>
+      This module version authenticates <em>by URL</em> — there is no separate token field. If your
+      collector issues an API key or site token, include it directly in the endpoint URL exactly as your
+      collector documents it (commonly a <code>?token=…</code> query parameter or an ID in the path). Whatever
+      you paste into <em>Beacon Endpoint</em> is what the browser will call.</div>
+
+    <p><button class="btn" data-open="dlg-endpoint">Show me step-by-step where to find it</button></p>
+  </section>
+
+  <!-- CONFIGURE -->
+  <section id="configure">
+    <h2><span class="n">4</span> Configure in the Admin</h2>
+    <ol class="steps">
+      <li><h3>Open the settings</h3>
+        <p>Log in to the Magento Admin and go to
+          <strong>Stores → Configuration → BasicRum → BasicRum Analytics</strong>.</p></li>
+      <li><h3>Enable the module</h3>
+        <p>Set <strong>Enable</strong> to <em>Yes</em>. (Nothing is injected on the storefront until this is on.)</p></li>
+      <li><h3>Paste your Beacon Endpoint</h3>
+        <p>Put the full URL from step 3 into <strong>Beacon Endpoint</strong>. It must be a valid URL — the
+          field validates this on save.</p>
+        <button class="btn ghost" data-open="dlg-config">See a filled-in example</button></li>
+      <li><h3>Save &amp; flush</h3>
+        <p>Click <strong>Save Config</strong>, then flush the cache from
+          <strong>System → Cache Management</strong> (or run <code>bin/magento cache:flush</code>).</p></li>
+    </ol>
+    <div class="note tip"><strong>Per-store setup</strong>
+      Beacon Endpoint can be set per website/store view. Switch the <em>scope</em> selector at the top-left of
+      the configuration page before saving if you run multiple brands or regions.</div>
+  </section>
+
+  <!-- CSP -->
+  <section id="csp">
+    <h2><span class="n">5</span> Content Security Policy</h2>
+    <p class="lead">Magento 2.4+ can enforce a Content-Security-Policy that blocks requests to unknown hosts.
+      This module handles that for you.</p>
+    <div class="card">
+      <p style="margin-top:0">When you save a Beacon Endpoint, the module automatically adds that host to the
+        <code>connect-src</code> and <code>img-src</code> CSP directives, so beacons are never blocked — even in
+        <em>restrict</em> (enforced) mode. You do <strong>not</strong> need to edit <code>csp_whitelist.xml</code>.</p>
+      <button class="btn ghost" data-open="dlg-csp">What is CSP and why does this matter?</button>
+    </div>
+    <div class="note warn"><strong>If you front the collector through a CDN or a different host</strong>
+      make sure the host you enter in <em>Beacon Endpoint</em> is the one the browser actually connects to. The
+      whitelist is derived from that exact value (scheme + host + port).</div>
+  </section>
+
+  <!-- VERIFY -->
+  <section id="verify">
+    <h2><span class="n">6</span> Verify it works</h2>
+    <ol class="steps">
+      <li><h3>Open your storefront</h3><p>Visit any page of your store in a normal browser tab.</p></li>
+      <li><h3>Open developer tools</h3><p>Press <kbd>F12</kbd> (or <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>) and
+        select the <strong>Network</strong> tab.</p></li>
+      <li><h3>Look for the beacon</h3>
+        <p>Filter by your collector host. Within a few seconds of the page settling you should see a request to
+          your Beacon Endpoint carrying <code>p_type</code> and <code>p_gen=mage2</code>.</p>
+        <button class="btn ghost" data-open="dlg-devtools">Show me what to look for</button></li>
+      <li><h3>Check the console</h3>
+        <p>The <strong>Console</strong> tab should show <em>no</em> CSP violation errors mentioning your beacon
+          host. If it does, see Troubleshooting below.</p></li>
+    </ol>
+  </section>
+
+  <!-- REFERENCE -->
+  <section id="reference">
+    <h2><span class="n">7</span> Settings reference</h2>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Setting</th><th>Config path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Enable</strong></td><td><code>basicrum/general/enabled</code></td>
+            <td>Master switch. When off, nothing is injected on the storefront.</td></tr>
+          <tr><td><strong>Beacon Endpoint</strong></td><td><code>basicrum/general/beacon_endpoint</code></td>
+            <td>Full URL of your collector. Validated as a URL; its host is auto-whitelisted for CSP.</td></tr>
+          <tr><td><strong>Boomerang JS Version</strong></td><td><em>display only</em></td>
+            <td>Shows the bundled Boomerang build. Informational; not editable.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px">Settings honour Magento config scope (Default / Website / Store View).</p>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2><span class="n">?</span> Frequently asked questions</h2>
+
+    <details>
+      <summary>Do I need an API key or token?<span class="tag q">SETUP</span></summary>
+      <div class="body"><p>No separate token field exists in this version. Authentication is by URL: if your
+        collector requires a token or site key, include it in the <strong>Beacon Endpoint</strong> URL (for
+        example as <code>?token=…</code>) exactly as your collector documents. A self-hosted BasicRUM catcher
+        typically needs no token at all.</p></div>
+    </details>
+
+    <details>
+      <summary>Does this collect personal data or set tracking cookies?<span class="tag q">PRIVACY</span></summary>
+      <div class="body"><p>The module sends <em>performance</em> beacons (timings, resource metrics). Boomerang
+        sets a first-party session cookie to correlate a session's beacons; it is configured here as
+        <code>secure</code> and <code>SameSite=Strict</code>. It does not capture form contents or personal
+        identifiers. Always confirm your own privacy/consent obligations for your jurisdiction and collector.</p></div>
+    </details>
+
+    <details>
+      <summary>Will it slow down my store?<span class="tag q">PERFORMANCE</span></summary>
+      <div class="body"><p>Boomerang is loaded <strong>asynchronously</strong> after the page is interactive, and
+        the beacon is sent a short delay <em>after</em> the page finishes loading — so measuring does not compete
+        with rendering. The library is ~30&nbsp;KB gzipped and served from your own static domain.</p></div>
+    </details>
+
+    <details>
+      <summary>Does it work with Hyvä / a headless front end?<span class="tag q">COMPATIBILITY</span></summary>
+      <div class="body"><p>Yes for standard Luma and Hyvä storefronts — it injects via a layout block into
+        <code>before.body.end</code> and uses CSP-safe inline script rendering. A fully headless (PWA) front end
+        does not render Magento layout, so you would integrate Boomerang in that front end instead.</p></div>
+    </details>
+
+    <details>
+      <summary>Can I use a different Beacon Endpoint per store view?<span class="tag q">SCOPE</span></summary>
+      <div class="body"><p>Yes. Change the scope selector at the top of the configuration page to a specific
+        Website or Store View before entering the value and saving.</p></div>
+    </details>
+
+    <details>
+      <summary>How do I upgrade the bundled Boomerang library?<span class="tag q">MAINTENANCE</span></summary>
+      <div class="body"><p>Replace <code>view/frontend/web/js/boomr/boomerang.min.js</code> with your new build
+        and update the <code>VERSION</code> constant in <code>Model/Boomerang.php</code>. The template references a
+        version-agnostic path, so no template edit is needed. Clear caches and re-deploy static content.</p></div>
+    </details>
+
+    <details>
+      <summary>What happened to the "Consent Settings" section?<span class="tag q">CHANGES</span></summary>
+      <div class="body"><p>It was removed in v0.1.0. Those fields were shown in the admin but never actually did
+        anything (no consent gating was applied), which was misleading. Real consent gating can be added as a
+        proper feature in a future release.</p></div>
+    </details>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section id="trouble">
+    <h2><span class="n">!</span> Troubleshooting</h2>
+    <p class="lead">Work top to bottom — the most common causes are first.</p>
+
+    <details>
+      <summary>No beacon appears in the Network tab<span class="tag fix">FIX</span></summary>
+      <div class="body">
+        <p><strong>Check, in order:</strong></p>
+        <ol style="margin:.2rem 0;padding-left:1.2rem">
+          <li><strong>Enable</strong> is set to <em>Yes</em> and config is saved.</li>
+          <li><strong>Beacon Endpoint</strong> is a full, correct URL. If it is empty, the module renders nothing.</li>
+          <li>You flushed the cache after saving (<code>bin/magento cache:flush</code>).</li>
+          <li>You waited a few seconds — the beacon is sent after the page fully loads.</li>
+          <li>No ad-blocker / privacy extension is blocking the request (test in a private window).</li>
+        </ol>
+      </div>
+    </details>
+
+    <details>
+      <summary>Console shows a "Content Security Policy" / "Refused to connect" error<span class="tag fix">FIX</span></summary>
+      <div class="body">
+        <p>The host being blocked must match your <strong>Beacon Endpoint</strong> host. Confirm the endpoint
+          host is exactly the host the browser connects to (including any CDN in front of it), then re-save and
+          flush caches so the CSP header is regenerated. If you set a custom CSP elsewhere, ensure it does not
+          strip <code>connect-src</code>/<code>img-src</code> additions.</p>
+        <button class="btn ghost" data-open="dlg-csp">How the whitelist is built →</button>
+      </div>
+    </details>
+
+    <details>
+      <summary>"Please enter a valid URL" when saving the endpoint<span class="tag fix">FIX</span></summary>
+      <div class="body"><p>The field requires a full URL including scheme, e.g. <code>https://rum.example.com/beacon</code>
+        — not a bare host like <code>rum.example.com</code>. Add <code>https://</code> and save again.</p></div>
+    </details>
+
+    <details>
+      <summary>Composer error about PHP or Magento version<span class="tag fix">FIX</span></summary>
+      <div class="body"><p>This release targets <strong>PHP 8.3/8.4</strong> and <strong>Magento 2.4.8+</strong>.
+        On older stacks Composer will refuse to install. Upgrade your platform, or pin to an older module release
+        that matches your environment.</p></div>
+    </details>
+
+    <details>
+      <summary>The module is enabled but the admin section is missing<span class="tag fix">FIX</span></summary>
+      <div class="body"><p>Run <code>bin/magento setup:upgrade</code> and flush caches. If your admin user cannot
+        see it, grant the <em>Stores → Settings → Configuration → BasicRum Analytics</em> ACL resource to the
+        admin role under <strong>System → User Roles</strong>.</p></div>
+    </details>
+
+    <details>
+      <summary>Beacons work locally but not in production<span class="tag fix">FIX</span></summary>
+      <div class="body"><p>Production mode caches DI and static content. After changing config or updating the
+        module run <code>bin/magento setup:di:compile</code>, re-deploy static content, and flush caches. Also
+        confirm your production CSP mode (report-only vs restrict) and that the beacon host resolves publicly.</p></div>
+    </details>
+  </section>
+
+  <hr>
+  <p class="muted">Still stuck? Check the module <code>CHANGELOG.md</code> and <code>README.md</code>, or open an
+    issue on the project repository with your Magento version, PHP version, and the exact Console/Network error.</p>
+
+</main>
+
+<!-- ===================== DIALOGS ===================== -->
+
+<dialog id="dlg-endpoint">
+  <div class="dlg-head"><h3>Finding your Beacon Endpoint</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <p>The Beacon Endpoint is provided by whatever <strong>receives</strong> your RUM data. Pick the path that
+      matches your setup:</p>
+    <p><strong>A · Self-hosted BasicRUM</strong></p>
+    <ol style="padding-left:1.2rem">
+      <li>Deploy the open-source BasicRUM beacon catcher (see the BasicRUM project docs).</li>
+      <li>Note the public URL and path it listens on, e.g. <code>https://rum.your-domain.com/beacon</code>.</li>
+      <li>Make sure it is reachable over HTTPS from the public internet.</li>
+    </ol>
+    <p><strong>B · Hosted / SaaS collector</strong></p>
+    <ol style="padding-left:1.2rem">
+      <li>Open your provider's dashboard.</li>
+      <li>Find the "beacon URL", "collector URL" or "install snippet".</li>
+      <li>Copy the full URL. If a token/site key is shown, keep it in the URL
+        (e.g. <code>…/beacon?token=abc123</code>).</li>
+    </ol>
+    <div class="note tip" style="margin-bottom:0"><strong>Rule of thumb</strong>
+      Whatever URL you would paste into a plain <code>&lt;script&gt;</code>-based install snippet's
+      <code>beacon_url</code> is exactly what goes into this field.</div>
+  </div>
+</dialog>
+
+<dialog id="dlg-config">
+  <div class="dlg-head"><h3>Example configuration</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <p>A typical filled-in <strong>Stores → Configuration → BasicRum → BasicRum Analytics</strong> screen:</p>
+    <div class="tbl-scroll">
+      <table>
+        <tbody>
+          <tr><th>Enable</th><td>Yes</td></tr>
+          <tr><th>Beacon Endpoint</th><td><code>https://rum.your-domain.com/beacon</code></td></tr>
+          <tr><th>Boomerang JS Version</th><td><span class="muted">Boomerang JS v.1.815.60 (continuity flavor) — ~30 KB (gzipped)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-bottom:0">Then <strong>Save Config</strong> and flush the cache.</p>
+  </div>
+</dialog>
+
+<dialog id="dlg-csp">
+  <div class="dlg-head"><h3>Content Security Policy, explained</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <p><strong>CSP</strong> is a browser security feature. Your store sends a <code>Content-Security-Policy</code>
+      header listing which hosts the page is allowed to talk to. Anything not on the list is blocked — which would
+      include your beacon if the collector host weren't whitelisted.</p>
+    <p>This module contributes a policy at runtime based on your configured endpoint. Conceptually, saving
+      <code>https://rum.example.com/beacon</code> results in the header including:</p>
+    <pre><button class="copy">Copy</button><code>Content-Security-Policy:
+  connect-src 'self' https://rum.example.com;
+  img-src     'self' https://rum.example.com;
+  ...</code></pre>
+    <p style="margin-bottom:0">Because it is derived from your setting, changing the endpoint updates the
+      whitelist automatically — there is no static file to maintain.</p>
+  </div>
+</dialog>
+
+<dialog id="dlg-devtools">
+  <div class="dlg-head"><h3>Spotting the beacon in DevTools</h3><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="dlg-body">
+    <p>In the <strong>Network</strong> tab, type your collector host into the filter box. Look for a request whose
+      name is your beacon path. Select it and check the payload — you should see variables like:</p>
+    <pre><button class="copy">Copy</button><code>p_type = product        (the page type)
+p_gen  = mage2          (added by this module)
+rt.*   = ...            (Boomerang timing metrics)
+restiming = ...         (ResourceTiming, if enabled)</code></pre>
+    <p style="margin-bottom:0">A <code>200</code> (or <code>204</code>) status from your collector means the beacon
+      was accepted. No request at all → see the first Troubleshooting item.</p>
+  </div>
+</dialog>
+
+<button class="totop btn" id="totop" title="Back to top">↑ Top</button>
+
+<footer>
+  <div class="wrap">
+    <span>BasicRum Analytics for Magento 2 · v0.1.0</span>
+    <span>Module code: MIT · Bundled Boomerang: BSD-3-Clause · See <code>LICENSE</code></span>
+  </div>
+</footer>
+
+<script>
+  // Copy-to-clipboard for code blocks
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.parentElement.querySelector('code');
+      var text = code ? code.innerText : '';
+      navigator.clipboard.writeText(text).then(function(){
+        var old = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1400);
+      }).catch(function(){ btn.textContent = 'Ctrl+C'; });
+    });
+  });
+
+  // Dialog open/close
+  document.querySelectorAll('[data-open]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var dlg = document.getElementById(btn.getAttribute('data-open'));
+      if (dlg && typeof dlg.showModal === 'function') dlg.showModal(); else if (dlg) dlg.setAttribute('open','');
+    });
+  });
+  document.querySelectorAll('dialog [data-close]').forEach(function(btn){
+    btn.addEventListener('click', function(){ btn.closest('dialog').close(); });
+  });
+  // Close dialog on backdrop click
+  document.querySelectorAll('dialog').forEach(function(dlg){
+    dlg.addEventListener('click', function(e){
+      var r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close();
+    });
+  });
+
+  // Back-to-top
+  var totop = document.getElementById('totop');
+  totop.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 500) totop.classList.add('show'); else totop.classList.remove('show');
+  });
+</script>
+</body>
+</html>

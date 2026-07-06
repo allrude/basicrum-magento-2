@@ -7,70 +7,72 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 /** @var Template $block */
-/** @var Footer $viewModel */
-/** @var SecureHtmlRenderer $secureRenderer */
 /** @var Escaper $escaper */
+/** @var SecureHtmlRenderer $secureRenderer */
 
+/** @var Footer $viewModel */
 $viewModel = $block->getViewModel();
-$config = $viewModel->getConfig();
-$pageType = $viewModel->getPageType();
+$beaconEndpoint = $viewModel->getBeaconEndpoint();
+
+// Without a beacon endpoint there is nothing to send to — skip rendering entirely.
+if ($beaconEndpoint === '') {
+    return;
+}
+
+$pageType = $escaper->escapeJs($viewModel->getPageType());
+$beaconUrl = $escaper->escapeJs($beaconEndpoint);
+$boomerangSrc = $escaper->escapeJs($block->getViewFileUrl(\BasicRum\Analytics\Model\Boomerang::JS_VIEW_PATH));
 
 $scriptString = <<<script
-(function(w) {
-    var WAIT_AFTER_ONLOAD_MILLISECONDS = 5000;
-
+(function (w, d) {
     if (!w) {
         return;
     }
 
-    w.BOOMR_mq = window.BOOMR_mq || [];
+    var WAIT_AFTER_ONLOAD_MILLISECONDS = 5000;
 
+    // Boomerang method queue: calls pushed here are replayed once the library has loaded.
+    w.BOOMR_mq = w.BOOMR_mq || [];
     w.BOOMR_mq.push(
-        ["addVar", "p_type", "{$block->escapeJs($pageType)}"],
+        ["init", {
+            beacon_url: "{$beaconUrl}",
+            // We finalize the beacon manually (see BOOMR.page_ready below) to capture late activity.
+            autorun: false,
+            instrument_xhr: true,
+            Continuity: { enabled: true },
+            ResourceTiming: { enabled: true, splitAtPath: true },
+            secure_cookie: true,
+            same_site_cookie: "Strict"
+        }],
+        ["addVar", "p_type", "{$pageType}"],
         ["addVar", "p_gen", "mage2"]
     );
 
-    BOOMR = w.BOOMR || {};
-    BOOMR.plugins = BOOMR.plugins || {};
-
-    BOOMR.plugins.WaitAfterOnload = {
-        complete: false,
-
-        init: function() {
-            BOOMR.subscribe("page_ready", function() {
-                setTimeout(function() {
-                    this.complete = true;
-                    BOOMR.sendBeacon();
-                }.bind(this), WAIT_AFTER_ONLOAD_MILLISECONDS);
-            }, {}, this);
-        },
-
-        is_complete: function() {
-            return this.complete;
-        }
-    };
-
-    w.basicRumBoomerangConfig = {
-        beacon_url: "{$block->escapeJs($config['beacon_endpoint'])}",
-        instrument_xhr: true,
-        Continuity: {
-            enabled: true
-        },
-        ResourceTiming: {
-            "enabled": true,
-            "splitAtPath": true
-        },
-        secure_cookie: true,
-        same_site_cookie: "Strict"
+    // Finalize (and send) the beacon a fixed delay after the page has fully loaded.
+    function scheduleBeacon() {
+        w.setTimeout(function () {
+            if (w.BOOMR && typeof w.BOOMR.page_ready === "function") {
+                w.BOOMR.page_ready();
+            }
+        }, WAIT_AFTER_ONLOAD_MILLISECONDS);
     }
-})(window);
-(function(d, s) {
-  var js = d.createElement(s),
-      sc = d.getElementsByTagName(s)[0];
 
-  js.src="{$escaper->escapeJs($block->getViewFileUrl('BasicRum_Analytics::js/boomr/boomerang-1.815.60.cutting-edge.min.js'))}";
-  sc.parentNode.insertBefore(js, sc);
-}(document, "script"));
+    if (d.readyState === "complete") {
+        scheduleBeacon();
+    } else {
+        w.addEventListener("load", scheduleBeacon);
+    }
+
+    // Asynchronously load the Boomerang library.
+    (function () {
+        var js = d.createElement("script"),
+            first = d.getElementsByTagName("script")[0];
+
+        js.async = true;
+        js.src = "{$boomerangSrc}";
+        first.parentNode.insertBefore(js, first);
+    })();
+})(window, document);
 script;
 ?>
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
