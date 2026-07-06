@@ -25,6 +25,11 @@
                     <validate>validate-url</validate>
                     <comment>Full URL of your BasicRUM beacon catcher. Its host is whitelisted for CSP automatically.</comment>
                 </field>
+                <field id="token" translate="label comment" type="obscure" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Beacon Token / Site Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Optional. If your collector requires a token or site key, enter it here and it is appended to the beacon URL automatically (as &amp;token=...). Leave blank if your collector needs no token. Stored encrypted.</comment>
+                </field>
                 <field id="boomerang_version" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Boomerang JS Version</label>
                     <frontend_model>BasicRum\Analytics\Block\Adminhtml\System\Config\BoomerangVersion</frontend_model>

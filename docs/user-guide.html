@@ -29,7 +29,7 @@
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 20px}
 
   header.hero{
-    background:linear-gradient(135deg, var(--brand), #6d3ff0);
+    background:linear-gradient(135deg, var(--brand), #0b6e4f);
     color:#fff; padding:44px 0 40px;
   }
   .hero .wrap{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
@@ -48,11 +48,11 @@
   nav.toc a:hover{color:var(--ink);background:var(--line)}
 
   main{padding:34px 0 60px}
-  section{margin:0 0 40px}
-  section > h2{font-size:1.35rem;margin:0 0 6px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  section{margin:0 0 52px}
+  section > h2{font-size:1.35rem;margin:0 0 22px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
   section > h2 .n{width:28px;height:28px;flex:0 0 auto;background:var(--brand);color:#fff;border-radius:8px;
     display:grid;place-items:center;font-size:.9rem;font-weight:700}
-  section > p.lead{color:var(--muted);margin:.2rem 0 18px}
+  section > p.lead{color:var(--muted);margin:-14px 0 26px}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
   .grid{display:grid;gap:14px}
@@ -177,13 +177,13 @@
       sends it to a collector you control, so you can see how fast your store actually is in the field —
       not just in a lab.</p>
     <div class="grid cols-3">
-      <div class="card feature"><div class="ico">⚡</div><h3>Real User Monitoring</h3>
+      <div class="card feature"><h3>Real User Monitoring</h3>
         <p>Loads the open-source <strong>Boomerang</strong> library to capture load time, ResourceTiming and
           Continuity (responsiveness) metrics from every visitor.</p></div>
-      <div class="card feature"><div class="ico">🏷️</div><h3>Page-type tagging</h3>
+      <div class="card feature"><h3>Page-type tagging</h3>
         <p>Every beacon is tagged with the page type (<code>home</code>, <code>product</code>,
           <code>checkout</code>…) and <code>p_gen=mage2</code> so you can segment in your dashboard.</p></div>
-      <div class="card feature"><div class="ico">🛡️</div><h3>CSP-safe by design</h3>
+      <div class="card feature"><h3>CSP-safe by design</h3>
         <p>Uses Magento's secure inline-script renderer and automatically whitelists your beacon host, so it
           works on stores with Content-Security-Policy enforced.</p></div>
     </div>
@@ -257,11 +257,12 @@ bin/magento cache:flush</code></pre>
       </div>
     </div>
 
-    <div class="note"><strong>About the "token"</strong>
-      This module version authenticates <em>by URL</em> — there is no separate token field. If your
-      collector issues an API key or site token, include it directly in the endpoint URL exactly as your
-      collector documents it (commonly a <code>?token=…</code> query parameter or an ID in the path). Whatever
-      you paste into <em>Beacon Endpoint</em> is what the browser will call.</div>
+    <div class="note"><strong>About the token</strong>
+      If your collector issues an API key or site token, put it in the dedicated <strong>Beacon Token /
+      Site Key</strong> field — it is stored encrypted and appended to the beacon URL automatically as
+      <code>&amp;token=…</code>. (You can still embed a token or ID directly in the Beacon Endpoint URL instead
+      if your collector expects a different format, e.g. an ID in the path.) A self-hosted BasicRUM catcher
+      usually needs no token at all — leave it blank.</div>
 
     <p><button class="btn" data-open="dlg-endpoint">Show me step-by-step where to find it</button></p>
   </section>
@@ -279,6 +280,9 @@ bin/magento cache:flush</code></pre>
         <p>Put the full URL from step 3 into <strong>Beacon Endpoint</strong>. It must be a valid URL — the
           field validates this on save.</p>
         <button class="btn ghost" data-open="dlg-config">See a filled-in example</button></li>
+      <li><h3>Add your token (optional)</h3>
+        <p>If your collector needs one, paste it into <strong>Beacon Token / Site Key</strong>. It is stored
+          encrypted and appended to the beacon URL automatically. Leave blank for a self-hosted catcher.</p></li>
       <li><h3>Save &amp; flush</h3>
         <p>Click <strong>Save Config</strong>, then flush the cache from
           <strong>System → Cache Management</strong> (or run <code>bin/magento cache:flush</code>).</p></li>
@@ -332,6 +336,8 @@ bin/magento cache:flush</code></pre>
             <td>Master switch. When off, nothing is injected on the storefront.</td></tr>
           <tr><td><strong>Beacon Endpoint</strong></td><td><code>basicrum/general/beacon_endpoint</code></td>
             <td>Full URL of your collector. Validated as a URL; its host is auto-whitelisted for CSP.</td></tr>
+          <tr><td><strong>Beacon Token / Site Key</strong></td><td><code>basicrum/general/token</code></td>
+            <td>Optional. Stored encrypted; appended to the beacon URL as <code>&amp;token=…</code> when set.</td></tr>
           <tr><td><strong>Boomerang JS Version</strong></td><td><em>display only</em></td>
             <td>Shows the bundled Boomerang build. Informational; not editable.</td></tr>
         </tbody>
@@ -346,10 +352,10 @@ bin/magento cache:flush</code></pre>
 
     <details>
       <summary>Do I need an API key or token?<span class="tag q">SETUP</span></summary>
-      <div class="body"><p>No separate token field exists in this version. Authentication is by URL: if your
-        collector requires a token or site key, include it in the <strong>Beacon Endpoint</strong> URL (for
-        example as <code>?token=…</code>) exactly as your collector documents. A self-hosted BasicRUM catcher
-        typically needs no token at all.</p></div>
+      <div class="body"><p>Only if your collector requires one. Enter it in the dedicated <strong>Beacon Token /
+        Site Key</strong> field — it is stored encrypted and appended to the beacon URL automatically as
+        <code>&amp;token=…</code>. A self-hosted BasicRUM catcher typically needs no token at all, so you can
+        leave it blank.</p></div>
     </details>
 
     <details>
@@ -494,6 +500,7 @@ bin/magento cache:flush</code></pre>
         <tbody>
           <tr><th>Enable</th><td>Yes</td></tr>
           <tr><th>Beacon Endpoint</th><td><code>https://rum.your-domain.com/beacon</code></td></tr>
+          <tr><th>Beacon Token / Site Key</th><td><span class="muted">•••••••••• (optional; blank for self-hosted)</span></td></tr>
           <tr><th>Boomerang JS Version</th><td><span class="muted">Boomerang JS v.1.815.60 (continuity flavor) — ~30 KB (gzipped)</span></td></tr>
         </tbody>
       </table>

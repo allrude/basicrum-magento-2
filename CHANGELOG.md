@@ -30,6 +30,14 @@ configuration path (`basicrum/general/*`) is unchanged, so existing configuratio
   Because the endpoint is admin-configurable it cannot be a static `csp_whitelist.xml` entry, so the
   host is resolved at runtime.
 
+### Added
+
+- **Beacon Token / Site Key field** (`basicrum/general/token`). Optional, stored **encrypted**
+  (`obscure` field + `Encrypted` backend model). When set, the ViewModel decrypts it and appends it to the
+  beacon URL automatically as `&token=…` (URL-encoded, respecting any existing query string). Leave blank
+  for collectors that need no token. The CSP whitelist is unaffected (the token lives in the query string,
+  not the host).
+
 ### Changed (compatibility)
 
 - **PHP 8.3 / 8.4 support.** `composer.json` PHP constraint changed from `^8.1|^8.2|^8.3`

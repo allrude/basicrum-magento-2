@@ -12,15 +12,15 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 /** @var Footer $viewModel */
 $viewModel = $block->getViewModel();
-$beaconEndpoint = $viewModel->getBeaconEndpoint();
+$beaconUrl = $viewModel->getBeaconUrl();
 
 // Without a beacon endpoint there is nothing to send to — skip rendering entirely.
-if ($beaconEndpoint === '') {
+if ($beaconUrl === '') {
     return;
 }
 
 $pageType = $escaper->escapeJs($viewModel->getPageType());
-$beaconUrl = $escaper->escapeJs($beaconEndpoint);
+$beaconUrl = $escaper->escapeJs($beaconUrl);
 $boomerangSrc = $escaper->escapeJs($block->getViewFileUrl(\BasicRum\Analytics\Model\Boomerang::JS_VIEW_PATH));
 
 $scriptString = <<<script
